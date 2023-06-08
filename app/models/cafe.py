@@ -1,3 +1,5 @@
+__all__ = ["Cafe", "City", "Image"]
+
 from enum import Enum
 
 from sqlalchemy import (

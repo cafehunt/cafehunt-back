@@ -1,14 +1,14 @@
 from fastapi import APIRouter
 from fastapi.params import Depends
 
-from app.serializers.cafe import Cafe
+from app.serializers.cafe import Cafe, CafeList
 from app.services.cafe import CafeService
 from app.utils.dependencies.services import get_cafe_service
 
 router = APIRouter()
 
 
-@router.get("", response_model=list[Cafe])
+@router.get("", response_model=list[CafeList])
 async def get_cafes(
         service: CafeService = Depends(get_cafe_service)
 ):

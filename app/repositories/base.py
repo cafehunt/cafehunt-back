@@ -23,7 +23,7 @@ class BaseRepository:
     async def get_all(self, query: Select, scalars: bool = True):
         response = await self.session.execute(query)
 
-        result = response.scalars().all() if scalars else response.all()
+        result = response.unique().scalars().all() if scalars else response.all()
 
         return result
 

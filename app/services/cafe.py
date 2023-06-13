@@ -8,8 +8,8 @@ from app.models.cafe import Cafe
 
 class CafeService:
 
-    def __init__(self, product_repo: CafeRepository):
-        self.repo = product_repo
+    def __init__(self, cafe_repo: CafeRepository):
+        self.repo = cafe_repo
 
     def get_all_cafes(self):
         query = (

@@ -1,5 +1,6 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi.params import Depends
+from starlette import status
 
 from app.serializers.cafe import Cafe, CafeList
 from app.services.cafe import CafeService
@@ -15,9 +16,14 @@ async def get_cafes(
     return await service.get_all_cafes()
 
 
-@router.get("/{cafe_Id}", response_model=Cafe)
+@router.get("/{cafe_id}/", response_model=Cafe)
 async def get_cafes_by_id(
         cafe_id: int,
         service: CafeService = Depends(get_cafe_service)
 ):
-    return await service.get_cafe_by_id(cafe_id)
+    cafe = await service.get_cafe_by_id(cafe_id)
+
+    if cafe is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+
+    return cafe

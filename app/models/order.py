@@ -1,27 +1,19 @@
-__all__ = ["Order", "OrderTime"]
+__all__ = ["Order"]
 
-from sqlalchemy import Column, Integer, DateTime, ForeignKey, Date
+from sqlalchemy import Column, Integer, DateTime, ForeignKey, func
 from sqlalchemy.orm import relationship
 from app.core.database import Base
-
-
-class OrderTime(Base):
-    __tablename__ = "order_times"
-
-    id = Column(Integer, primary_key=True)
-    date = Column(Date)
-    hour = Column(Integer)
-    order_id = Column(Integer, ForeignKey('order.id'))
-
-    order = relationship("Order", back_populates="order_times")
 
 
 class Order(Base):
     __tablename__ = "order"
 
     id = Column(Integer, primary_key=True)
-    places = Column(Integer)
+    places = Column(Integer, default=1)
     user_id = Column(Integer, ForeignKey("user.id"))
-    created_at = Column(DateTime)
+    cafe_id = Column(Integer, ForeignKey("cafe.id"))
+    booking_date = Column(DateTime)
+    created_at = Column(DateTime, server_default=func.now())
 
-    order_times = relationship("OrderTime", back_populates="order")
+    cafe = relationship("Cafe", back_populates="orders")
+    user = relationship("User", back_populates="orders")

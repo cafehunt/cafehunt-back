@@ -52,6 +52,7 @@ class Cafe(Base):
 
     city = relationship("City", back_populates="cafes")
     images = relationship("Image", back_populates="cafe")
+    orders = relationship("Order", back_populates="cafe")
 
 
 class Image(Base):

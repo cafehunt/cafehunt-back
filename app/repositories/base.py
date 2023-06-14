@@ -62,3 +62,10 @@ class BaseRepository:
 
         await self.session.execute(query)
         await self.session.commit()
+
+    async def exists(self, query: Select):
+        query = query.with_only_columns(self.model.id)
+        response = await self.session.execute(query)
+        result = response.first()
+
+        return bool(result)

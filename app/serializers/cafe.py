@@ -37,3 +37,11 @@ class Cafe(CafeList):
     can_with_pets: bool
     has_outdoor_seating: bool
     has_vegan_menu: bool
+
+
+class VacantPlaces(BaseModel):
+    cafe_id: int
+    available_places: int
+
+    class Config:
+        orm_mode = True

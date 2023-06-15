@@ -51,18 +51,32 @@ class OrderService:
             )
 
     async def check_vacant_places(self, data: dict):
-        query = select(
-            Cafe.id,
-            (Cafe.places - func.coalesce(func.sum(Order.places), 0))
-            .label("available_places")
-        ).join(Order).where(
-            and_(
-                Order.cafe_id == data["cafe_id"],
-                Order.booking_date == data["booking_date"]
+        query_cafe = select(Cafe).where(Cafe.id == data["cafe_id"])
+
+        cafe = await self.repo.get_one_obj(query_cafe)
+
+        if cafe is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Not found cafe"
+            )
+
+        query = (
+            select(func.sum(Order.places))
+            .where(
+                and_(
+                    Order.cafe_id == cafe.id,
+                    Order.booking_date == data["places"]
+                )
             )
         )
 
-        available_places = await self.repo.get_one_obj(query)
+        booked_places = await self.repo.get_one_obj(query)
+
+        if booked_places is None:
+            available_places = cafe.places
+        else:
+            available_places = cafe.places - booked_places
 
         if available_places < data["places"]:
             raise HTTPException(

@@ -26,7 +26,10 @@ async def get_cafes_by_id(
     cafe = await service.get_cafe_by_id(cafe_id)
 
     if cafe is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Not found cafe"
+        )
 
     return cafe
 

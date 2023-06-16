@@ -10,5 +10,6 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     hashed_password = Column(String, nullable=False)
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
+    phone_number = Column(String, nullable=True)
 
     orders = relationship("Order", back_populates="user")

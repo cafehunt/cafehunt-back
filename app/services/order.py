@@ -1,8 +1,9 @@
 from fastapi import HTTPException
 from sqlalchemy import select, and_, exists, func
+from sqlalchemy.orm import joinedload
 from starlette import status
 
-from app.models import User, Cafe
+from app.models import User, Cafe, City
 from app.repositories.order_repo import OrderRepository
 
 from app.models.order import Order
@@ -14,9 +15,24 @@ class OrderService:
         self.repo = order_repo
 
     async def get_user_orders(self, user: User):
-        query = select(Order).where(Order.user_id == user.id)
+        query = (
+            select(
+                Order.id,
+                Order.cafe_id,
+                Order.created_at,
+                Order.places,
+                Order.booking_date,
+                Cafe.name.label("cafe_name"),
+                City.name.label("city_name")
+            )
+            .join(Cafe, Cafe.id == Order.cafe_id)
+            .join(City, City.id == Cafe.city_id)
+            .where(Order.user_id == user.id)
+        )
 
-        return await self.repo.get_all(query)
+        response = await self.repo.get_all(query, scalars=False)
+
+        return response
 
     async def create_order(self, data: dict):
         await self.check_order_at_this_time(data)

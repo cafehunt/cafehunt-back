@@ -66,7 +66,7 @@ class OrderService:
             .where(
                 and_(
                     Order.cafe_id == cafe.id,
-                    Order.booking_date == data["places"]
+                    Order.booking_date == data["booking_date"]
                 )
             )
         )

@@ -42,24 +42,28 @@ class CafeService:
 
         date = await self.validate_date(date)
 
-        query = (
+        subquery = (
             select(func.sum(Order.places))
             .where(
                 and_(
                     Order.cafe_id == cafe_id,
-                    Order.booking_date == date  # Change it after moving to PostgreSQL
+                    Order.booking_date == date
                 )
             )
+            .as_scalar()
         )
 
-        booked_places = await self.repo.get_one_obj(query)
+        query = select(
+                    Cafe.id.label("cafe_id"),
+                    (Cafe.places - func.coalesce(subquery, 0))
+                    .label("available_places")
+            )
 
-        if booked_places is None:
-            available_places = cafe.places
-        else:
-            available_places = cafe.places - booked_places
+        response = await self.repo.get_one_obj(query, scalar=False)
 
-        return {"cafe_id": cafe_id, "available_places": available_places}
+        result = response.fetchone()
+
+        return result
 
     @staticmethod
     async def validate_date(date: str) -> datetime | HTTPException:

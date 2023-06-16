@@ -17,9 +17,9 @@ from app.core.database import Base
 
 
 class AverageBill(Enum):
-    CHEAP = "cheap"
-    MIDDLE = "middle"
-    EXPENSIVE = "expensive"
+    CHEAP = "$"
+    MIDDLE = "$$"
+    EXPENSIVE = "$$$"
 
 
 class City(Base):

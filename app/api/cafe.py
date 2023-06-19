@@ -18,6 +18,13 @@ async def get_cafes(
     return await service.get_all_cafes()
 
 
+@router.get("/explore_new/", response_model=list[CafeList])
+async def get_random_cafes(
+    service: CafeService = Depends(get_cafe_service)
+):
+    return await service.get_random_cafes()
+
+
 @router.get("/{cafe_id}/", response_model=Cafe)
 async def get_cafes_by_id(
         cafe_id: int,

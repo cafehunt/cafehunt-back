@@ -1,3 +1,4 @@
+import random
 from datetime import datetime
 
 from fastapi import HTTPException
@@ -30,6 +31,23 @@ class CafeService:
             query = query.options(joinedload(Cafe.images))
 
         return await self.repo.get_one_obj(query)
+
+    async def get_random_cafes(self, amount: int = 4):
+        cafes_count_query = select(func.count()).select_from(Cafe)
+
+        cafes_count = await self.repo.get_one_obj(cafes_count_query)
+
+        random_cafe_ids = sorted(
+            random.sample(range(1, cafes_count + 1), amount)
+        )
+
+        query = (
+            select(Cafe).join(Cafe.images)
+            .options(joinedload(Cafe.images))
+            .where(Cafe.id.in_(random_cafe_ids))
+        )
+
+        return await self.repo.get_all(query)
 
     async def get_vacant_places(self, cafe_id: int, date: str):
         cafe = await self.get_cafe_by_id(cafe_id, with_images=False)

@@ -1,3 +1,5 @@
+import datetime
+
 from fastapi import HTTPException
 from sqlalchemy import select, and_, exists, func
 from sqlalchemy.orm import joinedload
@@ -43,14 +45,21 @@ class OrderService:
     async def delete_order(self, order_id: int, user: User):
         query = select(Order).where(Order.id == order_id)
 
-        result = await self.repo.get_one_obj(query)
+        order = await self.repo.get_one_obj(query)
 
-        if result.user_id != user.user_id:
+        if order.user_id != user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN
             )
 
-        await self.repo.delete(order_id)
+        if order.booking_date < datetime.datetime.now():
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can't delete an "
+                       "order that has already been processed"
+            )
+
+        return await self.repo.delete(order_id)
 
     async def check_order_at_this_time(self, data: dict):
         query = select(Order).where(

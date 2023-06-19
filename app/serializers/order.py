@@ -6,14 +6,22 @@ from pydantic import BaseModel, validator
 class OrderBase(BaseModel):
     cafe_id: int
     places: int
-    booking_date: datetime
+    booking_date: str
 
 
 class Order(OrderBase):
     id: int
+    booking_date: datetime
     created_at: datetime
     cafe_name: str
     city_name: str
+
+    class Config:
+        orm_mode = True
+
+
+class OrderCreateResponse(OrderBase):
+    booking_date: datetime
 
     class Config:
         orm_mode = True

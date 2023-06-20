@@ -12,3 +12,4 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     last_name = Column(String, nullable=False)
 
     orders = relationship("Order", back_populates="user")
+    favourites = relationship("FavouriteCafe", back_populates="user")

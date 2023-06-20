@@ -54,6 +54,7 @@ class Cafe(Base):
     city = relationship("City", back_populates="cafes")
     images = relationship("Image", back_populates="cafe")
     orders = relationship("Order", back_populates="cafe")
+    favourites = relationship("FavouriteCafe", back_populates="cafe")
 
 
 class Image(Base):
@@ -64,3 +65,14 @@ class Image(Base):
     cafe_id = Column(Integer, ForeignKey("cafe.id"))
 
     cafe = relationship("Cafe", back_populates="images")
+
+
+class FavouriteCafe(Base):
+    __tablename__ = "favourite_cafe"
+
+    id = Column(Integer, primary_key=True)
+    cafe_id = Column(Integer, ForeignKey("cafe.id"))
+    user_id = Column(Integer, ForeignKey("user.id"))
+
+    cafe = relationship("Cafe", back_populates="favourites")
+    user = relationship("User", back_populates="favourites")

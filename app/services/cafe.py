@@ -37,9 +37,7 @@ class CafeService:
 
         cafes_count = await self.repo.get_one_obj(cafes_count_query)
 
-        random_cafe_ids = sorted(
-            random.sample(range(1, cafes_count + 1), amount)
-        )
+        random_cafe_ids = random.sample(range(1, cafes_count + 1), amount)
 
         query = (
             select(Cafe).join(Cafe.images)

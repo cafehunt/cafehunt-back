@@ -1,3 +1,4 @@
+import random
 from datetime import datetime
 from typing import Optional
 
@@ -7,9 +8,10 @@ from sqlalchemy.orm import joinedload
 from starlette import status
 
 from app.models import Order
-from app.repositories.cafe_repo import CafeRepository
+from app.repositories.cafe_repo import CafeRepository, FavouriteCafeRepository
 from app.serializers.cafe import Cafe
-from app.models.cafe import Cafe, AverageBill
+
+from app.models import Cafe, User, FavouriteCafe
 
 
 class CafeService:
@@ -74,6 +76,21 @@ class CafeService:
 
         return await self.repo.get_one_obj(query)
 
+    async def get_random_cafes(self, amount: int = 4):
+        cafes_count_query = select(func.count()).select_from(Cafe)
+
+        cafes_count = await self.repo.get_one_obj(cafes_count_query)
+
+        random_cafe_ids = random.sample(range(1, cafes_count + 1), amount)
+
+        query = (
+            select(Cafe).join(Cafe.images)
+            .options(joinedload(Cafe.images))
+            .where(Cafe.id.in_(random_cafe_ids))
+        )
+
+        return await self.repo.get_all(query)
+
     async def get_vacant_places(self, cafe_id: int, date: str):
         cafe = await self.get_cafe_by_id(cafe_id, with_images=False)
 
@@ -85,24 +102,28 @@ class CafeService:
 
         date = await self.validate_date(date)
 
-        query = (
+        subquery = (
             select(func.sum(Order.places))
             .where(
                 and_(
                     Order.cafe_id == cafe_id,
-                    Order.booking_date == date  # Change it after moving to PostgreSQL
+                    Order.booking_date == date
                 )
             )
+            .as_scalar()
         )
 
-        booked_places = await self.repo.get_one_obj(query)
+        query = select(
+                    Cafe.id.label("cafe_id"),
+                    (Cafe.places - func.coalesce(subquery, 0))
+                    .label("available_places")
+            )
 
-        if booked_places is None:
-            available_places = cafe.places
-        else:
-            available_places = cafe.places - booked_places
+        response = await self.repo.get_one_obj(query, scalar=False)
 
-        return {"cafe_id": cafe_id, "available_places": available_places}
+        result = response.fetchone()
+
+        return result
 
     @staticmethod
     async def validate_date(date: str) -> datetime | HTTPException:
@@ -121,3 +142,46 @@ class CafeService:
             )
 
         return date
+
+
+class FavouriteCafeService:
+
+    def __init__(self, fav_cafe_repo: FavouriteCafeRepository):
+        self.repo = fav_cafe_repo
+
+    async def get_favourite_cafes(self, user: User):
+        query = select(FavouriteCafe).where(FavouriteCafe.user_id == user.id)
+
+        return await self.repo.get_all(query)
+
+    async def add_to_favourite(self, cafe_id: int, user: User):
+        query_to_exist = select(FavouriteCafe).where(
+            and_(
+                FavouriteCafe.cafe_id == cafe_id,
+                FavouriteCafe.user_id == user.id
+            )
+        )
+
+        if await self.repo.exists(query_to_exist):
+            raise HTTPException(
+                detail="Cafe already added to favourite",
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        data = {
+            "cafe_id": cafe_id,
+            "user_id": User.id
+        }
+
+        return await self.repo.create(data)
+
+    async def delete_favourite_cafe(self, fav_cafe_id: int, user: User):
+        query = select(FavouriteCafe).where(FavouriteCafe.id == fav_cafe_id)
+
+        fav_cafe = await self.repo.get_one_obj(query)
+
+        if fav_cafe.user_id != user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+
+        return await self.repo.delete(fav_cafe_id)

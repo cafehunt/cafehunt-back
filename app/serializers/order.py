@@ -1,23 +1,33 @@
 from datetime import datetime
 
-from pydantic import BaseModel, validator, Field
+from pydantic import BaseModel, validator
 
 
-class Order(BaseModel):
-    id: int
-    places: int
+class OrderBase(BaseModel):
     cafe_id: int
+    places: int
+    booking_date: str
+
+
+class Order(OrderBase):
+    id: int
     booking_date: datetime
     created_at: datetime
+    cafe_name: str
+    city_name: str
 
     class Config:
         orm_mode = True
 
 
-class OrderCreate(BaseModel):
-    cafe_id: int
-    places: int
-    booking_date: str
+class OrderCreateResponse(OrderBase):
+    booking_date: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class OrderCreate(OrderBase):
 
     class Config:
         schema_extra = {
@@ -62,4 +72,3 @@ class OrderCreate(BaseModel):
             raise ValueError("Booking date cannot be in the past")
 
         return value
-

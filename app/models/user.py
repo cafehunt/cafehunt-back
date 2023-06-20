@@ -13,3 +13,4 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     phone_number = Column(String, nullable=True)
 
     orders = relationship("Order", back_populates="user")
+    favourites = relationship("FavouriteCafe", back_populates="user")

@@ -7,9 +7,9 @@ from sqlalchemy.orm import joinedload
 from starlette import status
 
 from app.models import Order
-from app.repositories.cafe_repo import CafeRepository
+from app.repositories.cafe_repo import CafeRepository, FavouriteCafeRepository
 from app.serializers.cafe import Cafe
-from app.models.cafe import Cafe
+from app.models import Cafe, User, FavouriteCafe
 
 
 class CafeService:
@@ -98,3 +98,46 @@ class CafeService:
             )
 
         return date
+
+
+class FavouriteCafeService:
+
+    def __init__(self, fav_cafe_repo: FavouriteCafeRepository):
+        self.repo = fav_cafe_repo
+
+    async def get_favourite_cafes(self, user: User):
+        query = select(FavouriteCafe).where(FavouriteCafe.user_id == user.id)
+
+        return await self.repo.get_all(query)
+
+    async def add_to_favourite(self, cafe_id: int, user: User):
+        query_to_exist = select(FavouriteCafe).where(
+            and_(
+                FavouriteCafe.cafe_id == cafe_id,
+                FavouriteCafe.user_id == user.id
+            )
+        )
+
+        if await self.repo.exists(query_to_exist):
+            raise HTTPException(
+                detail="Cafe already added to favourite",
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        data = {
+            "cafe_id": cafe_id,
+            "user_id": User.id
+        }
+
+        return await self.repo.create(data)
+
+    async def delete_favourite_cafe(self, fav_cafe_id: int, user: User):
+        query = select(FavouriteCafe).where(FavouriteCafe.id == fav_cafe_id)
+
+        fav_cafe = await self.repo.get_one_obj(query)
+
+        if fav_cafe.user_id != user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+
+        return await self.repo.delete(fav_cafe_id)

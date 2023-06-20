@@ -1,4 +1,4 @@
-__all__ = ["Cafe", "City", "Image", "AverageBill"]
+__all__ = ["Cafe", "City", "Image", "AverageBill", "FavouriteCafe"]
 
 from enum import Enum
 

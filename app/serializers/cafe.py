@@ -30,6 +30,7 @@ class CafeList(CafeBase):
 
 class Cafe(CafeList):
     street: str
+    phone_number: str | None
     work_time_start: time
     work_time_end: time
     has_wifi: bool

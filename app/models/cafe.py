@@ -38,6 +38,7 @@ class Cafe(Base):
     name = Column(String(255))
     city_id = Column(Integer, ForeignKey("city.id"))
     street = Column(String)
+    phone_number = Column(String(20))
     places = Column(Integer)
     average_bill = Column(EnumType(AverageBill), default=AverageBill.MIDDLE)
     rating = Column(Float, default=0)

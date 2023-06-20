@@ -1,8 +1,11 @@
+import datetime
+
 from fastapi import HTTPException
 from sqlalchemy import select, and_, exists, func
+from sqlalchemy.orm import joinedload
 from starlette import status
 
-from app.models import User, Cafe
+from app.models import User, Cafe, City
 from app.repositories.order_repo import OrderRepository
 
 from app.models.order import Order
@@ -14,9 +17,24 @@ class OrderService:
         self.repo = order_repo
 
     async def get_user_orders(self, user: User):
-        query = select(Order).where(Order.user_id == user.id)
+        query = (
+            select(
+                Order.id,
+                Order.cafe_id,
+                Order.created_at,
+                Order.places,
+                Order.booking_date,
+                Cafe.name.label("cafe_name"),
+                City.name.label("city_name")
+            )
+            .join(Cafe, Cafe.id == Order.cafe_id)
+            .join(City, City.id == Cafe.city_id)
+            .where(Order.user_id == user.id)
+        )
 
-        return await self.repo.get_all(query)
+        response = await self.repo.get_all(query, scalars=False)
+
+        return response
 
     async def create_order(self, data: dict):
         await self.check_order_at_this_time(data)
@@ -27,14 +45,21 @@ class OrderService:
     async def delete_order(self, order_id: int, user: User):
         query = select(Order).where(Order.id == order_id)
 
-        result = await self.repo.get_one_obj(query)
+        order = await self.repo.get_one_obj(query)
 
-        if result.user_id != user.user_id:
+        if order.user_id != user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN
             )
 
-        await self.repo.delete(order_id)
+        if order.booking_date < datetime.datetime.now():
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can't delete an "
+                       "order that has already been processed"
+            )
+
+        return await self.repo.delete(order_id)
 
     async def check_order_at_this_time(self, data: dict):
         query = select(Order).where(
@@ -66,7 +91,7 @@ class OrderService:
             .where(
                 and_(
                     Order.cafe_id == cafe.id,
-                    Order.booking_date == data["places"]
+                    Order.booking_date == data["booking_date"]
                 )
             )
         )

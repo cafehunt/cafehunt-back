@@ -4,7 +4,7 @@ from app.api.user import fastapi_users
 
 from app.models import User
 from app.services.order import OrderService
-from app.serializers.order import OrderCreate, Order
+from app.serializers.order import OrderCreate, Order, OrderCreateResponse
 from app.utils.dependencies.services import get_order_service
 
 router = APIRouter()
@@ -18,7 +18,7 @@ async def get_user_orders(
     return await service.get_user_orders(user=user)
 
 
-@router.post("", response_model=Order)
+@router.post("", response_model=OrderCreateResponse)
 async def create_order(
         order_data: OrderCreate,
         user: User = Depends(fastapi_users.current_user()),

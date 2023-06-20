@@ -1,4 +1,4 @@
-__all__ = ["Cafe", "City", "Image", "AverageBill"]
+__all__ = ["Cafe", "City", "Image", "AverageBill", "FavouriteCafe"]
 
 from enum import Enum
 
@@ -17,9 +17,9 @@ from app.core.database import Base
 
 
 class AverageBill(Enum):
-    CHEAP = "cheap"
-    MIDDLE = "middle"
-    EXPENSIVE = "expensive"
+    CHEAP = "$"
+    MIDDLE = "$$"
+    EXPENSIVE = "$$$"
 
 
 class City(Base):
@@ -38,6 +38,7 @@ class Cafe(Base):
     name = Column(String(255))
     city_id = Column(Integer, ForeignKey("city.id"))
     street = Column(String)
+    phone_number = Column(String(20))
     places = Column(Integer)
     average_bill = Column(EnumType(AverageBill), default=AverageBill.MIDDLE)
     rating = Column(Float, default=0)
@@ -53,6 +54,7 @@ class Cafe(Base):
     city = relationship("City", back_populates="cafes")
     images = relationship("Image", back_populates="cafe")
     orders = relationship("Order", back_populates="cafe")
+    favourites = relationship("FavouriteCafe", back_populates="cafe")
 
 
 class Image(Base):
@@ -63,3 +65,14 @@ class Image(Base):
     cafe_id = Column(Integer, ForeignKey("cafe.id"))
 
     cafe = relationship("Cafe", back_populates="images")
+
+
+class FavouriteCafe(Base):
+    __tablename__ = "favourite_cafe"
+
+    id = Column(Integer, primary_key=True)
+    cafe_id = Column(Integer, ForeignKey("cafe.id"))
+    user_id = Column(Integer, ForeignKey("user.id"))
+
+    cafe = relationship("Cafe", back_populates="favourites")
+    user = relationship("User", back_populates="favourites")

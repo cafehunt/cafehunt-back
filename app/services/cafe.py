@@ -36,10 +36,16 @@ class CafeService:
 
         filters = []
 
+        if rating is not None and (rating < 1 or rating > 5):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Rating must be an integer between 1 and 5."
+            )
+
         if city_id:
             filters.append(Cafe.city_id == city_id)
         if rating:
-            filters.append(and_(Cafe.rating >= rating - 1, Cafe.rating <= rating))
+            filters.append(and_(Cafe.rating > rating - 1, Cafe.rating <= rating))
         if average_bill:
             filters.append(Cafe.average_bill == AverageBill[average_bill.upper()])
         if has_wifi is not None:

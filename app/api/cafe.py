@@ -27,6 +27,7 @@ async def get_cafes(
     has_outdoor_seating: Optional[bool] = None,
     has_vegan_menu: Optional[bool] = None,
     name: Optional[str] = None,
+    sort_by: Optional[str] = None,
     service: CafeService = Depends(get_cafe_service)
 ):
     return await service.get_all_cafes(
@@ -38,6 +39,7 @@ async def get_cafes(
         can_with_pets=can_with_pets,
         has_outdoor_seating=has_outdoor_seating,
         has_vegan_menu=has_vegan_menu,
+        sort_by=sort_by,
         name=name
     )
 

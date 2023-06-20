@@ -21,6 +21,10 @@ class AverageBill(Enum):
     MIDDLE = "$$"
     EXPENSIVE = "$$$"
 
+    @property
+    def sort_order(self):
+        return self.value.count("$")
+
 
 class City(Base):
     __tablename__ = "city"

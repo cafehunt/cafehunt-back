@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import APIRouter, HTTPException
 from fastapi.params import Depends
 from starlette import status
@@ -16,9 +18,28 @@ router = APIRouter()
 
 @router.get("", response_model=list[CafeList])
 async def get_cafes(
-        service: CafeService = Depends(get_cafe_service)
+    city_id: Optional[int] = None,
+    rating: Optional[int] = None,
+    average_bill: Optional[str] = None,
+    has_wifi: Optional[bool] = None,
+    has_coworking_place: Optional[bool] = None,
+    can_with_pets: Optional[bool] = None,
+    has_outdoor_seating: Optional[bool] = None,
+    has_vegan_menu: Optional[bool] = None,
+    name: Optional[str] = None,
+    service: CafeService = Depends(get_cafe_service)
 ):
-    return await service.get_all_cafes()
+    return await service.get_all_cafes(
+        city_id=city_id,
+        rating=rating,
+        average_bill=average_bill,
+        has_wifi=has_wifi,
+        has_coworking_place=has_coworking_place,
+        can_with_pets=can_with_pets,
+        has_outdoor_seating=has_outdoor_seating,
+        has_vegan_menu=has_vegan_menu,
+        name=name
+    )
 
 
 @router.get("/explore_new/", response_model=list[CafeList])

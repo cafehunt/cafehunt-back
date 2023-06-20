@@ -7,7 +7,7 @@ from sqlalchemy import select, func, and_
 from sqlalchemy.orm import joinedload
 from starlette import status
 
-from app.models import Order
+from app.models import Order, AverageBill
 from app.repositories.cafe_repo import CafeRepository, FavouriteCafeRepository
 from app.serializers.cafe import Cafe
 

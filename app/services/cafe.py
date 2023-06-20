@@ -20,8 +20,7 @@ class CafeService:
     async def get_all_cafes(
             self,
             city_id: int = None,
-            min_rating: float = None,
-            max_rating: float = None,
+            rating: Optional[int] = None,
             average_bill: Optional[AverageBill] = None,
             has_wifi: bool = None,
             has_coworking_place: bool = None,
@@ -39,10 +38,8 @@ class CafeService:
 
         if city_id:
             filters.append(Cafe.city_id == city_id)
-        if min_rating is not None:
-            filters.append(Cafe.rating >= min_rating)
-        if max_rating is not None:
-            filters.append(Cafe.rating <= max_rating)
+        if rating:
+            filters.append(and_(Cafe.rating >= rating - 1, Cafe.rating <= rating))
         if average_bill:
             filters.append(Cafe.average_bill == AverageBill[average_bill.upper()])
         if has_wifi is not None:

@@ -16,8 +16,7 @@ router = APIRouter()
 @router.get("", response_model=list[CafeList])
 async def get_cafes(
     city_id: Optional[int] = None,
-    min_rating: Optional[float] = None,
-    max_rating: Optional[float] = None,
+    rating: Optional[int] = None,
     average_bill: Optional[str] = None,
     has_wifi: Optional[bool] = None,
     has_coworking_place: Optional[bool] = None,
@@ -29,8 +28,7 @@ async def get_cafes(
 ):
     return await service.get_all_cafes(
         city_id=city_id,
-        min_rating=min_rating,
-        max_rating=max_rating,
+        rating=rating,
         average_bill=average_bill,
         has_wifi=has_wifi,
         has_coworking_place=has_coworking_place,

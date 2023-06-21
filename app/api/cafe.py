@@ -1,5 +1,3 @@
-from typing import Optional
-
 from fastapi import APIRouter, HTTPException
 from fastapi.params import Depends
 from starlette import status
@@ -18,15 +16,16 @@ router = APIRouter()
 
 @router.get("", response_model=list[CafeList])
 async def get_cafes(
-    city_id: Optional[int] = None,
-    rating: Optional[int] = None,
-    average_bill: Optional[str] = None,
-    has_wifi: Optional[bool] = None,
-    has_coworking_place: Optional[bool] = None,
-    can_with_pets: Optional[bool] = None,
-    has_outdoor_seating: Optional[bool] = None,
-    has_vegan_menu: Optional[bool] = None,
-    name: Optional[str] = None,
+    city_id: int | None = None,
+    rating: int | None = None,
+    average_bill: str | None = None,
+    has_wifi: bool | None = None,
+    has_coworking_place: bool | None = None,
+    can_with_pets: bool | None = None,
+    has_outdoor_seating: bool | None = None,
+    has_vegan_menu: bool | None = None,
+    name: str | None = None,
+    sort_by: str | None = None,
     service: CafeService = Depends(get_cafe_service)
 ):
     return await service.get_all_cafes(
@@ -38,6 +37,7 @@ async def get_cafes(
         can_with_pets=can_with_pets,
         has_outdoor_seating=has_outdoor_seating,
         has_vegan_menu=has_vegan_menu,
+        sort_by=sort_by,
         name=name
     )
 

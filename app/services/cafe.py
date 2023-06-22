@@ -5,6 +5,7 @@ from fastapi import HTTPException
 from sqlalchemy import select, func, and_
 from sqlalchemy.orm import joinedload
 from starlette import status
+from starlette.responses import Response
 
 from app.models import Order, AverageBill
 from app.repositories.cafe_repo import CafeRepository, FavouriteCafeRepository
@@ -165,34 +166,25 @@ class FavouriteCafeService:
 
         return await self.repo.get_all(query)
 
-    async def add_to_favourite(self, cafe_id: int, user: User):
-        query_to_exist = select(FavouriteCafe).where(
-            and_(
-                FavouriteCafe.cafe_id == cafe_id,
-                FavouriteCafe.user_id == user.id
-            )
-        )
+    async def add_or_delete_favourite(self, cafe_id, user: User):
+        find_fav_query = select(FavouriteCafe).where(and_(
+            FavouriteCafe.user_id == user.id,
+            FavouriteCafe.cafe_id == cafe_id
+        ))
 
-        if await self.repo.exists(query_to_exist):
-            raise HTTPException(
-                detail="Cafe already added to favourite",
-                status_code=status.HTTP_400_BAD_REQUEST
-            )
-        data = {
+        fav_cafe = await self.repo.get_one_obj(find_fav_query)
+
+        if fav_cafe:
+            await self.repo.delete(fav_cafe.id)
+
+            return Response(status_code=204)
+
+        fav_cafe_data = {
             "cafe_id": cafe_id,
-            "user_id": User.id
+            "user_id": user.id
         }
 
-        return await self.repo.create(data)
+        fav_cafe = await self.repo.create(fav_cafe_data)
 
-    async def delete_favourite_cafe(self, fav_cafe_id: int, user: User):
-        query = select(FavouriteCafe).where(FavouriteCafe.id == fav_cafe_id)
-
-        fav_cafe = await self.repo.get_one_obj(query)
-
-        if fav_cafe.user_id != user.id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN
-            )
-
-        return await self.repo.delete(fav_cafe_id)
+        if fav_cafe:
+            return Response(status_code=201)

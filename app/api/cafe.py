@@ -86,13 +86,13 @@ async def get_vacant_places(
     return await service.get_vacant_places(cafe_id, date)
 
 
-@router.post("/{cafe_id}/add_to_favourite/")
+@router.post("/{cafe_id}/add_delete_favourite/")
 async def add_to_favourite(
         cafe_id: int,
         user: User = Depends(fastapi_users.current_user()),
         service: FavouriteCafeService = Depends(get_favourite_cafe_service)
 ):
-    return await service.add_to_favourite(cafe_id, user)
+    return await service.add_or_delete_favourite(cafe_id, user)
 
 
 @router.get("/favourite/")
@@ -101,12 +101,3 @@ async def get_fav_cafes(
         service: FavouriteCafeService = Depends(get_favourite_cafe_service)
 ):
     return await service.get_favourite_cafes(user)
-
-
-@router.delete("/favourite/{favourite_id}/")
-async def delete_favourite(
-        favourite_cafe_id: int,
-        user: User = Depends(fastapi_users.current_user()),
-        service: FavouriteCafeService = Depends(get_favourite_cafe_service)
-):
-    return await service.delete_favourite_cafe(favourite_cafe_id, user)

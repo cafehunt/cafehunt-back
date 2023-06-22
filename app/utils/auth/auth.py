@@ -6,11 +6,11 @@ import secrets
 bearer_transport = BearerTransport(tokenUrl="auth/jwt/login")
 
 
-SECRET = secrets.token_urlsafe(32)  # should be set as an environment variable
+SECRET = secrets.token_urlsafe(32)
 
 
 def get_jwt_strategy() -> JWTStrategy:
-    return JWTStrategy(secret=SECRET, lifetime_seconds=3600)
+    return JWTStrategy(secret=SECRET, lifetime_seconds=36000)
 
 
 auth_backend = AuthenticationBackend(

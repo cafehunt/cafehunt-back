@@ -33,8 +33,6 @@ class UserCreate(schemas.BaseUserCreate):
             raise ValueError("Password must contain at least one uppercase letter")
         if not re.search("[0-9]", value):
             raise ValueError("Password must contain at least one digit")
-        if not re.search("[@#$?!]", value):
-            raise ValueError("Password must contain at least one special character (@, #, $, ?, !)")
         return value
 
 

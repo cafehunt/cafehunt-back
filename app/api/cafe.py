@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.params import Depends
+from pydantic import Field
 from starlette import status
 
 from app.api.user import fastapi_users
@@ -10,11 +11,19 @@ from app.utils.dependencies.services import (
     get_cafe_service,
     get_favourite_cafe_service
 )
+from fastapi_pagination import Page, paginate
+
 
 router = APIRouter()
 
 
-@router.get("", response_model=list[CafeList])
+Page = Page.with_custom_options(
+    size=Field(10, ge=1, le=100),
+    page=Field(1, ge=1)
+)
+
+
+@router.get("", response_model=Page[CafeList])
 async def get_cafes(
     city_id: int | None = None,
     rating: int | None = None,
@@ -28,7 +37,7 @@ async def get_cafes(
     sort_by: str | None = None,
     service: CafeService = Depends(get_cafe_service)
 ):
-    return await service.get_all_cafes(
+    result = await service.get_all_cafes(
         city_id=city_id,
         rating=rating,
         average_bill=average_bill,
@@ -40,6 +49,8 @@ async def get_cafes(
         sort_by=sort_by,
         name=name
     )
+
+    return paginate(result)
 
 
 @router.get("/explore_new/", response_model=list[CafeList])
@@ -84,7 +95,7 @@ async def add_to_favourite(
     return await service.add_to_favourite(cafe_id, user)
 
 
-@router.get("/cafes/favourite/")
+@router.get("/favourite/")
 async def get_fav_cafes(
         user: User = Depends(fastapi_users.current_user()),
         service: FavouriteCafeService = Depends(get_favourite_cafe_service)
@@ -92,7 +103,7 @@ async def get_fav_cafes(
     return await service.get_favourite_cafes(user)
 
 
-@router.delete("/cafes/favourite/{favourite_id}/")
+@router.delete("/favourite/{favourite_id}/")
 async def delete_favourite(
         favourite_cafe_id: int,
         user: User = Depends(fastapi_users.current_user()),

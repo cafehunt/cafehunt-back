@@ -21,6 +21,7 @@ class CafeService:
 
     async def get_all_cafes(
             self,
+            user: User | None,
             city_id: int | None = None,
             rating: int | None = None,
             average_bill: AverageBill | None = None,
@@ -36,7 +37,6 @@ class CafeService:
             select(Cafe).join(Cafe.images)
             .options(joinedload(Cafe.images))
         )
-
         filters = []
 
         if rating is not None and (rating < 1 or rating > 5):
@@ -67,26 +67,54 @@ class CafeService:
         if filters:
             query = query.where(and_(*filters))
 
+        cafes = await self.repo.get_all(query)
+
         if sort_by:
-
-            cafes = await self.repo.get_all(query)
-
             if sort_by == "rating":
                 cafes.sort(key=lambda cafe: cafe.rating, reverse=True)
             elif sort_by == "average_bill":
                 cafes.sort(key=lambda cafe: cafe.average_bill.sort_order)
 
-            return cafes
+        if user is not None:
+            fav_cafe_query = select(
+                FavouriteCafe.cafe_id
+            ).where(FavouriteCafe.user_id == 1)
 
-        return await self.repo.get_all(query)
+            fav_cafes = await self.repo.get_all(fav_cafe_query)
 
-    async def get_cafe_by_id(self, cafe_id: int, with_images: bool = True):
+            for cafe in cafes:
+                if cafe.id in fav_cafes:
+                    setattr(cafe, "is_favourite_cafe", True)
+
+        return cafes
+
+    async def get_cafe_by_id(
+            self,
+            cafe_id: int,
+            user: User | None,
+            with_images: bool = True
+    ):
         query = select(Cafe).where(Cafe.id == cafe_id)
 
         if with_images:
             query = query.options(joinedload(Cafe.images))
 
-        return await self.repo.get_one_obj(query)
+        cafe = await self.repo.get_one_obj(query)
+
+        if user is not None:
+            fav_cafe_query = (
+                select(FavouriteCafe).where(
+                    and_(
+                        FavouriteCafe.cafe_id == cafe_id,
+                        FavouriteCafe.user_id == user.id
+                    )
+                )
+            )
+
+            if await self.repo.exists(fav_cafe_query):
+                setattr(cafe, "is_favourite_cafe", True)
+
+        return cafe
 
     async def get_random_cafes(self, amount: int = 4):
         cafes_count_query = select(func.count()).select_from(Cafe)

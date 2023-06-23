@@ -13,12 +13,11 @@ from app.utils.dependencies.services import (
 )
 from fastapi_pagination import Page, paginate
 
-
 router = APIRouter()
 
 
 Page = Page.with_custom_options(
-    size=Field(10, ge=1, le=100),
+    size=Field(5, ge=1, le=100),
     page=Field(1, ge=1)
 )
 
@@ -35,9 +34,11 @@ async def get_cafes(
     has_vegan_menu: bool | None = None,
     name: str | None = None,
     sort_by: str | None = None,
+    user: User | None = Depends(fastapi_users.current_user(optional=True)),
     service: CafeService = Depends(get_cafe_service)
 ):
     result = await service.get_all_cafes(
+        user=user,
         city_id=city_id,
         rating=rating,
         average_bill=average_bill,
@@ -63,9 +64,10 @@ async def get_random_cafes(
 @router.get("/{cafe_id}/", response_model=Cafe)
 async def get_cafes_by_id(
         cafe_id: int,
+        user: User | None = Depends(fastapi_users.current_user(optional=True)),
         service: CafeService = Depends(get_cafe_service)
 ):
-    cafe = await service.get_cafe_by_id(cafe_id)
+    cafe = await service.get_cafe_by_id(cafe_id, user)
 
     if cafe is None:
         raise HTTPException(
@@ -86,13 +88,13 @@ async def get_vacant_places(
     return await service.get_vacant_places(cafe_id, date)
 
 
-@router.post("/{cafe_id}/add_to_favourite/")
+@router.post("/{cafe_id}/add_delete_favourite/")
 async def add_to_favourite(
         cafe_id: int,
         user: User = Depends(fastapi_users.current_user()),
         service: FavouriteCafeService = Depends(get_favourite_cafe_service)
 ):
-    return await service.add_to_favourite(cafe_id, user)
+    return await service.add_or_delete_favourite(cafe_id, user)
 
 
 @router.get("/favourite/")
@@ -101,12 +103,3 @@ async def get_fav_cafes(
         service: FavouriteCafeService = Depends(get_favourite_cafe_service)
 ):
     return await service.get_favourite_cafes(user)
-
-
-@router.delete("/favourite/{favourite_id}/")
-async def delete_favourite(
-        favourite_cafe_id: int,
-        user: User = Depends(fastapi_users.current_user()),
-        service: FavouriteCafeService = Depends(get_favourite_cafe_service)
-):
-    return await service.delete_favourite_cafe(favourite_cafe_id, user)

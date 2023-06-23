@@ -23,6 +23,7 @@ class CafeList(CafeBase):
     rating: float
     reviews: int
     average_bill: AverageBill
+    is_favourite_cafe: bool = False
 
     class Config:
         orm_mode = True

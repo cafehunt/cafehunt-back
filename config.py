@@ -9,7 +9,7 @@ DB_USER = os.getenv("POSTGRES_USER")
 DB_NAME = os.getenv("POSTGRES_DB")
 DB_PASSWORD = os.getenv("POSTGRES_PASSWORD")
 DB_HOST = os.getenv("POSTGRES_HOST")
-
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 SQLALCHEMY_DATABASE_URL = (
     f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}"

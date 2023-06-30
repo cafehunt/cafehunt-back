@@ -5,7 +5,7 @@ from starlette import status
 
 from app.api.user import fastapi_users
 from app.models import User
-from app.serializers.cafe import Cafe, CafeList, VacantPlaces
+from app.serializers.cafe import Cafe, CafeList, VacantPlaces, FavouriteCafe
 from app.services.cafe import CafeService, FavouriteCafeService
 from app.utils.dependencies.services import (
     get_cafe_service,
@@ -61,7 +61,7 @@ async def get_random_cafes(
     return await service.get_random_cafes()
 
 
-@router.get("/{cafe_id}/", response_model=Cafe)
+@router.get("/{cafe_id}", response_model=Cafe)
 async def get_cafes_by_id(
         cafe_id: int,
         user: User | None = Depends(fastapi_users.current_user(optional=True)),
@@ -88,6 +88,14 @@ async def get_vacant_places(
     return await service.get_vacant_places(cafe_id, date)
 
 
+@router.get("/favourite/", response_model=list[FavouriteCafe])
+async def get_fav_cafes(
+        user: User = Depends(fastapi_users.current_user()),
+        service: FavouriteCafeService = Depends(get_favourite_cafe_service)
+):
+    return await service.get_favourite_cafes(user)
+
+
 @router.post("/{cafe_id}/add_delete_favourite/")
 async def add_to_favourite(
         cafe_id: int,
@@ -95,11 +103,3 @@ async def add_to_favourite(
         service: FavouriteCafeService = Depends(get_favourite_cafe_service)
 ):
     return await service.add_or_delete_favourite(cafe_id, user)
-
-
-@router.get("/favourite/")
-async def get_fav_cafes(
-        user: User = Depends(fastapi_users.current_user()),
-        service: FavouriteCafeService = Depends(get_favourite_cafe_service)
-):
-    return await service.get_favourite_cafes(user)

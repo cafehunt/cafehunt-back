@@ -131,8 +131,8 @@ class CafeService:
 
         return await self.repo.get_all(query)
 
-    async def get_vacant_places(self, cafe_id: int, date: str):
-        cafe = await self.get_cafe_by_id(cafe_id, with_images=False)
+    async def get_vacant_places(self, cafe_id: int, date: str, user: User):
+        cafe = await self.get_cafe_by_id(cafe_id, user, with_images=False)
 
         if cafe is None:
             raise HTTPException(

@@ -85,7 +85,7 @@ async def get_vacant_places(
         user: User = Depends(fastapi_users.current_user()),
         service: CafeService = Depends(get_cafe_service)
 ):
-    return await service.get_vacant_places(cafe_id, date)
+    return await service.get_vacant_places(cafe_id, date, user)
 
 
 @router.get("/favourite/", response_model=list[FavouriteCafe])

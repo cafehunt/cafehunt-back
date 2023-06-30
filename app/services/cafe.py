@@ -3,11 +3,11 @@ from datetime import datetime
 
 from fastapi import HTTPException
 from sqlalchemy import select, func, and_
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, subqueryload
 from starlette import status
 from starlette.responses import Response
 
-from app.models import Order, AverageBill
+from app.models import Order, AverageBill, Image
 from app.repositories.cafe_repo import CafeRepository, FavouriteCafeRepository
 from app.serializers.cafe import Cafe
 
@@ -190,9 +190,33 @@ class FavouriteCafeService:
         self.repo = fav_cafe_repo
 
     async def get_favourite_cafes(self, user: User):
-        query = select(FavouriteCafe).where(FavouriteCafe.user_id == user.id)
+        subquery_fav = select(
+            FavouriteCafe.cafe_id
+        ).where(FavouriteCafe.user_id == user.id).subquery()
 
-        return await self.repo.get_all(query)
+        subquery_images = (
+            select(Image.url)
+            .where(Image.cafe_id == Cafe.id)
+            .limit(1)
+            .as_scalar()
+        )
+
+        query = (
+            select(
+                Cafe.name,
+                Cafe.street,
+                Cafe.work_time_start,
+                Cafe.work_time_end,
+                Cafe.rating,
+                Cafe.reviews,
+                subquery_images.label("image")
+            )
+            .join(FavouriteCafe.cafe)
+            .where(Cafe.id.in_(subquery_fav))
+            .group_by(Cafe.id)
+        )
+
+        return await self.repo.get_all(query, scalars=False)
 
     async def add_or_delete_favourite(self, cafe_id, user: User):
         find_fav_query = select(FavouriteCafe).where(and_(

@@ -47,3 +47,15 @@ class VacantPlaces(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class FavouriteCafe(CafeBase):
+    street: str
+    work_time_start: time
+    work_time_end: time
+    rating: float
+    reviews: int
+    image: str
+
+    class Config:
+        orm_mode = True

@@ -6,7 +6,7 @@ from .user import router as user_router
 from .city import router as city_router
 
 
-api_router = APIRouter()
+api_router = APIRouter(prefix="/api")
 
 api_router.include_router(cafe_router, prefix="/cafes", tags=["Cafe"])
 

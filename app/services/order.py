@@ -5,7 +5,7 @@ from sqlalchemy import select, and_, exists, func
 from sqlalchemy.orm import joinedload
 from starlette import status
 
-from app.models import User, Cafe, City
+from app.models import User, Cafe, City, Image
 from app.repositories.order_repo import OrderRepository
 
 from app.models.order import Order
@@ -17,6 +17,13 @@ class OrderService:
         self.repo = order_repo
 
     async def get_user_orders(self, user: User):
+        subquery_images = (
+            select(Image.url)
+            .where(Image.cafe_id == Cafe.id)
+            .limit(1)
+            .as_scalar()
+        )
+
         query = (
             select(
                 Order.id,
@@ -24,8 +31,10 @@ class OrderService:
                 Order.created_at,
                 Order.places,
                 Order.booking_date,
+                Cafe.id.label("cafe_id"),
                 Cafe.name.label("cafe_name"),
-                City.name.label("city_name")
+                City.name.label("city_name"),
+                subquery_images.label("image")
             )
             .join(Cafe, Cafe.id == Order.cafe_id)
             .join(City, City.id == Cafe.city_id)

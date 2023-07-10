@@ -15,6 +15,7 @@ class Order(OrderBase):
     created_at: datetime
     cafe_name: str
     city_name: str
+    image: str
 
     class Config:
         orm_mode = True

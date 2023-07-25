@@ -5,11 +5,11 @@ services:
       dockerfile: Dockerfile
     command: >
       sh -c "alembic upgrade head && 
-             uvicorn app.main:app --host 0.0.0.0 --reload"
+             uvicorn app.main:app --host 0.0.0.0 --port 80 --reload"
     env_file:
       - .env
     ports:
-      - 8000:8000
+      - 8000:80
     restart: always
     depends_on:
       - db

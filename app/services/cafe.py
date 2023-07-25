@@ -78,7 +78,7 @@ class CafeService:
         if user is not None:
             fav_cafe_query = select(
                 FavouriteCafe.cafe_id
-            ).where(FavouriteCafe.user_id == 1)
+            ).where(FavouriteCafe.user_id == user.id)
 
             fav_cafes = await self.repo.get_all(fav_cafe_query)
 

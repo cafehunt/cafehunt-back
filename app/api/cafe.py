@@ -22,7 +22,7 @@ Page = Page.with_custom_options(
 )
 
 
-@router.get("/", response_model=Page[CafeList])
+@router.get("", response_model=Page[CafeList])
 async def get_cafes(
     city_id: int | None = None,
     rating: int | None = None,

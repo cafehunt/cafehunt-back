@@ -50,6 +50,7 @@ class VacantPlaces(BaseModel):
 
 
 class FavouriteCafe(CafeBase):
+    id: int
     street: str
     work_time_start: time
     work_time_end: time

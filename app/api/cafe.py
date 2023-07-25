@@ -56,9 +56,10 @@ async def get_cafes(
 
 @router.get("/explore_new/", response_model=list[CafeList])
 async def get_random_cafes(
-    service: CafeService = Depends(get_cafe_service)
+    service: CafeService = Depends(get_cafe_service),
+    user: User | None = Depends(fastapi_users.current_user(optional=True))
 ):
-    return await service.get_random_cafes()
+    return await service.get_random_cafes(user)
 
 
 @router.get("/{cafe_id}", response_model=Cafe)

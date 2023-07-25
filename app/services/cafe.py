@@ -116,7 +116,7 @@ class CafeService:
 
         return cafe
 
-    async def get_random_cafes(self, amount: int = 4):
+    async def get_random_cafes(self, user: User | None, amount: int = 4):
         cafes_count_query = select(func.count()).select_from(Cafe)
 
         cafes_count = await self.repo.get_one_obj(cafes_count_query)
@@ -129,7 +129,20 @@ class CafeService:
             .where(Cafe.id.in_(random_cafe_ids))
         )
 
-        return await self.repo.get_all(query)
+        cafes = await self.repo.get_all(query)
+
+        if user is not None:
+            fav_cafe_query = select(
+                FavouriteCafe.cafe_id
+            ).where(FavouriteCafe.user_id == user.id)
+
+            fav_cafes = await self.repo.get_all(fav_cafe_query)
+
+            for cafe in cafes:
+                if cafe.id in fav_cafes:
+                    setattr(cafe, "is_favourite_cafe", True)
+
+        return cafes
 
     async def get_vacant_places(self, cafe_id: int, date: str, user: User):
         cafe = await self.get_cafe_by_id(cafe_id, user, with_images=False)
@@ -203,6 +216,7 @@ class FavouriteCafeService:
 
         query = (
             select(
+                Cafe.id,
                 Cafe.name,
                 Cafe.street,
                 Cafe.work_time_start,
